@@ -10,6 +10,7 @@ import me.ash.reader.data.dao.FeedDao
 import me.ash.reader.data.dao.GroupDao
 import me.ash.reader.data.model.account.Account
 import me.ash.reader.data.model.account.AccountTypeConverters
+import me.ash.reader.data.model.account.BlockListConverters
 import me.ash.reader.data.model.article.Article
 import me.ash.reader.data.model.feed.Feed
 import me.ash.reader.data.model.group.Group
@@ -17,9 +18,9 @@ import java.util.*
 
 @Database(
     entities = [Account::class, Feed::class, Article::class, Group::class],
-    version = 2
+    version = 3
 )
-@TypeConverters(RYDatabase.DateConverters::class, AccountTypeConverters::class)
+@TypeConverters(RYDatabase.DateConverters::class, AccountTypeConverters::class, BlockListConverters::class)
 abstract class RYDatabase : RoomDatabase() {
 
     abstract fun accountDao(): AccountDao
@@ -60,6 +61,7 @@ abstract class RYDatabase : RoomDatabase() {
 
 val allMigrations = arrayOf(
     MIGRATION_1_2,
+    MIGRATION_2_3,
 )
 
 @Suppress("ClassName")
@@ -69,6 +71,21 @@ object MIGRATION_1_2 : Migration(1, 2) {
         database.execSQL(
             """
             ALTER TABLE article ADD COLUMN img TEXT DEFAULT NULL
+            """.trimIndent()
+        )
+    }
+}
+
+@Suppress("ClassName")
+object MIGRATION_2_3 : Migration(2, 3) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            ALTER TABLE account ADD COLUMN syncOnStart INTEGER NOT NULL DEFAULT 0
+            ALTER TABLE account ADD COLUMN onlyOnWiFi INTEGER NOT NULL DEFAULT 0
+            ALTER TABLE account ADD COLUMN keep INTEGER NOT NULL DEFAULT 0
+            ALTER TABLE account ADD COLUMN blockList TEXT DEFAULT NULL
             """.trimIndent()
         )
     }
